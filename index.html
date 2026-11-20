@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WeatherGPT – Conversational AI for Weather</title>
+<style>
+:root{--bg:#f3f4ee;--card:#e5e9d9;--panel:#fff;--ink:#12261f;--mut:#5b6b63;--acc:#0a3d38;--acc2:#1a8f84;--line:#cfd3c3;--warn:#c0392b;--code:#12261f;--codet:#d7efe6;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1714;--card:#17251f;--panel:#1b2c26;--ink:#e6f0ea;--mut:#9bb0a6;--acc:#2fb5a5;--acc2:#5ad1c2;--line:#2b3f37;--warn:#ff7b6b;--code:#08100d;--codet:#c9ecdf;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1714;--card:#17251f;--panel:#1b2c26;--ink:#e6f0ea;--mut:#9bb0a6;--acc:#2fb5a5;--acc2:#5ad1c2;--line:#2b3f37;--warn:#ff7b6b;--code:#08100d;--codet:#c9ecdf;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:18px 20px 8px;max-width:1100px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+h1{margin:0;font-size:26px;letter-spacing:-.5px}h1 span{color:var(--acc2)}small{color:var(--mut)}
+nav{max-width:1100px;margin:auto;padding:0 20px;display:flex;gap:6px;overflow-x:auto}
+nav button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 14px;border-radius:20px;cursor:pointer;font:inherit;white-space:nowrap}
+nav button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+main{max-width:1100px;margin:auto;padding:14px 20px 40px}
+.tab{display:none}.tab.on{display:block}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+#chat{height:380px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:4px}
+.b{max-width:86%;padding:9px 13px;border-radius:14px;background:var(--card)}.b.u{align-self:flex-end;background:var(--acc);color:#fff}
+.b .al{margin-top:6px;padding:6px 10px;border-left:4px solid var(--warn);background:rgba(192,57,43,.12);border-radius:6px}
+.b .sf{margin-top:6px;font-size:13px;color:var(--mut)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.chips button{border:1px solid var(--acc2);background:none;color:var(--ink);border-radius:16px;padding:5px 11px;cursor:pointer;font:inherit;font-size:13px}
+.chips button:hover{background:var(--card)}
+.row{display:flex;gap:8px}input,select{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.go{background:var(--acc);color:#fff;border:0;border-radius:10px;padding:0 18px;cursor:pointer;font:inherit}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-family:ui-monospace,Menlo,monospace;font-size:13px}.kv b{color:var(--acc2)}
+.steps{display:flex;gap:6px;margin:8px 0}.steps div{flex:1;text-align:center;font-size:12px;padding:6px 2px;border-radius:8px;background:var(--card);color:var(--mut);transition:.3s}.steps div.hot{background:var(--acc2);color:#fff;transform:translateY(-3px)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}.stat{background:var(--card);border-radius:12px;padding:10px;text-align:center}.stat big{display:block;font-size:24px}.stat small{display:block}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}@media(max-width:600px){.days{grid-template-columns:repeat(2,1fr)}}
+.day{background:var(--card);border-radius:12px;padding:10px;text-align:center}.day .e{font-size:26px}
+svg text{fill:var(--mut);font:11px system-ui}
+.kb{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.kb .card{cursor:pointer}.kb .card:hover{border-color:var(--acc2)}.kb p{display:none;margin:8px 0 0;color:var(--mut)}.kb .card.open p{display:block}
+details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}summary{cursor:pointer;font-weight:600}
+pre{background:var(--code);color:var(--codet);padding:12px;border-radius:10px;overflow-x:auto;font-size:12.5px;line-height:1.5}
+.tg{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:20px;padding:4px 12px;font:inherit}
+.chatcard{padding:0;overflow:hidden}.sky{position:relative;height:96px;background:linear-gradient(135deg,#4aa3df,#8fd3f4);color:#fff;overflow:hidden;transition:background .8s}.sky.rain{background:linear-gradient(135deg,#3a4a5e,#6b7f95)}.sky.hot{background:linear-gradient(135deg,#f6a23a,#f76b4b)}.sky.cloud{background:linear-gradient(135deg,#7a8da3,#b4c3d1)}
+.skyin{position:relative;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 16px}.skyin .tg{margin-left:auto;background:rgba(255,255,255,.25);color:#fff;border-color:transparent}
+.av{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.3);display:grid;place-items:center;font-size:24px;animation:bob 3s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-4px)}}
+#fx i{position:absolute;top:-14px;width:2px;height:14px;background:rgba(255,255,255,.7);animation:fall 1s linear infinite}@keyframes fall{to{transform:translateY(130px)}}
+#fx .sun{position:absolute;right:-20px;top:-20px;width:90px;height:90px;border-radius:50%;background:#ffe27a;box-shadow:0 0 50px 20px rgba(255,226,122,.6);animation:pulse 4s infinite}@keyframes pulse{50%{transform:scale(1.1)}}
+#fx .cl{position:absolute;font-size:40px;opacity:.6;animation:drift 18s linear infinite}@keyframes drift{from{transform:translateX(-60px)}to{transform:translateX(520px)}}
+#chat{height:340px;padding:14px;background:radial-gradient(circle at 1px 1px,var(--line) 1px,transparent 0) 0 0/18px 18px}
+.b{animation:pop .3s ease;border-radius:18px 18px 18px 4px;box-shadow:0 1px 3px rgba(0,0,0,.08)}.b.u{border-radius:18px 18px 4px 18px;background:linear-gradient(135deg,var(--acc),var(--acc2))}@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.96)}}
+.ts{display:block;font-size:10px;opacity:.55;text-align:right;margin-top:3px}
+.dots i{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--mut);animation:bn 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}@keyframes bn{50%{transform:translateY(-5px)}}
+.fu{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}.fu button{border:1px solid var(--acc2);background:var(--panel);color:var(--ink);border-radius:14px;padding:3px 9px;font:inherit;font-size:12px;cursor:pointer}
+.chatcard .chips,.chatcard .row{padding:0 14px}.chatcard .row{padding-bottom:14px}.mic.on{background:var(--warn);animation:pulse 1s infinite}
+.cmpg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}@media(max-width:600px){.cmpg{grid-template-columns:1fr}}.bar{height:10px;border-radius:6px;background:var(--card);margin:3px 0 10px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+.cs{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin:10px 0}.cs div{height:34px;border-radius:4px}.ck label{display:block;padding:5px 0;cursor:pointer}.ck input{flex:none;padding:0;margin-right:6px}
+</style></head><body>
+<header><div><h1>Weather<span>GPT</span></h1><small>Conversational AI for weather · CMR Institute of Technology, CSE mini-project</small></div>
+<div><button class="tg" id="unit">°C</button> <button class="tg" id="theme">◐ Theme</button></div></header>
+<nav id="nav"></nav>
+<main>
+<section class="tab on" id="t-chat"><div class="grid">
+<div class="card chatcard"><div class="sky" id="sky"><div class="skyin"><div class="av">⛅</div><div><b>WeatherGPT</b><br><small id="skyt" style="color:#fff">Online</small></div><button class="tg" id="clr">🗑 Clear</button></div><div id="fx"></div></div><div id="chat"></div>
+<div class="chips" id="chips"></div>
+<div class="row"><input id="q" placeholder="Ask e.g. “Will it rain in Mumbai this evening?”" autocomplete="off"><button class="go mic" id="mic" title="Voice input">🎤</button><button class="go" id="send">Send ➤</button></div></div>
+<div class="card"><b>Query processing inspector</b><br><small>Watch the 4-stage workflow run live</small>
+<div class="steps" id="steps"><div>1 Query</div><div>2 Process</div><div>3 Retrieve</div><div>4 Respond</div></div>
+<div class="kv" id="insp"><b>city</b><span>–</span><b>intent</b><span>–</span><b>time</b><span>–</span><b>source</b><span>–</span></div>
+<b>⭐ Saved cities</b> <small>(say “save Delhi”)</small><div class="chips" id="favs"></div><p><small>The chatbot remembers your last city, so follow-ups like “and tomorrow?” work.</small></p></div></div></section>
+
+<section class="tab" id="t-dash"><div class="card"><div class="row"><select id="city"></select></div>
+<div id="hero"></div><div class="stats" id="stats"></div>
+<b>Temperature next 24 h</b><div id="tchart"></div>
+<b>Chance of rain by hour (%)</b><div id="rchart"></div>
+<b>5-day outlook</b><div class="days" id="days"></div></div></section>
+
+<section class="tab" id="t-clim"><p>The curated climate knowledge base. Tap a card to open it, or ask the same thing in chat.</p><div class="kb" id="kb"></div></section>
+
+<section class="tab" id="t-cmp"><div class="card"><div class="row"><select id="c1"></select><select id="c2"></select></div><div class="cmpg" id="cmpo"></div></div></section>
+<section class="tab" id="t-tips"><div class="card"><div class="row"><select id="pc"></select><select id="pa"><option>Outdoor run</option><option>Commute</option><option>Picnic</option><option>Travel</option></select></div><div id="plan"></div></div></section>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+const tabs=[["chat","💬 Chat"],["dash","📊 Dashboard"],["clim","🌍 Climate"],["cmp","⚖️ Compare"],["tips","🎒 Plan my day"]];
+$("#nav").innerHTML=tabs.map((t,i)=>`<button data-t="${t[0]}" class="${i?"":"on"}">${t[1]}</button>`).join("");
+$("#nav").onclick=e=>{const t=e.target.dataset.t;if(!t)return;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b===e.target));document.querySelectorAll(".tab").forEach(s=>s.classList.toggle("on",s.id==="t-"+t));if(t==="dash")drawDash();if(t==="cmp")drawCmp();if(t==="tips")drawPlan()};
+$("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
+
+/* ---- DATA: stands in for the Open-Meteo API ---- */
+const CITIES={Bengaluru:{t:27,a:5,h:68,w:14,r:55,c:"Pleasant, with passing showers"},Mumbai:{t:31,a:3,h:82,w:22,r:78,c:"Humid, heavy rain bands"},Delhi:{t:39,a:6,h:30,w:18,r:8,c:"Hot and hazy"},Chennai:{t:33,a:4,h:75,w:20,r:35,c:"Warm and humid"},Hyderabad:{t:30,a:6,h:55,w:12,r:30,c:"Partly cloudy"},London:{t:12,a:3,h:80,w:24,r:60,c:"Overcast, light drizzle"},"New York":{t:15,a:5,h:60,w:26,r:25,c:"Breezy and clear"},Tokyo:{t:19,a:4,h:65,w:42,r:40,c:"Cloudy, gusty winds"}};
+let U="C";const cv=v=>U==="C"?v:Math.round(v*9/5+32),us=()=>"°"+U,uv=c=>Math.max(1,Math.round((c.t+c.a)/4-c.r/40)),aqi=n=>40+seed(n)%120,cmpN=l=>Object.keys(CITIES).filter(c=>l.includes(c.toLowerCase())).length;
+const seed=s=>[...s].reduce((x,c)=>(x*31+c.charCodeAt(0))%1000,7);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function hourly(n){const c=CITIES[n],s=seed(n),now=new Date().getHours();return Array.from({length:24},(_,i)=>{const h=(now+i)%24;return{h,t:Math.round(c.t+c.a*Math.sin((h-9)/24*2*Math.PI)),r:Math.round(clamp(c.r+25*Math.sin((h-14)/24*2*Math.PI)+(s+i*7)%9-4,0,100))}})}
+function daily(n){const c=CITIES[n],s=seed(n),d=new Date();return Array.from({length:5},(_,i)=>{const x=new Date(d.getTime()+i*864e5),r=clamp(c.r+(s+i*13)%30-15,2,98);return{d:i?x.toLocaleDateString("en",{weekday:"short"}):"Today",hi:c.t+c.a+(s+i*7)%5-2,lo:c.t-c.a+(s+i*3)%3-1,r,e:r>65?"🌧️":r>35?"⛅":c.t>35?"☀️":"🌤️"}})}
+function alerts(n){const c=CITIES[n],o=[];if(c.r>=70)o.push("Heavy rain advisory: waterlogging possible");if(c.t+c.a>=38)o.push("Heat advisory: avoid midday sun");if(c.w>=40)o.push("Wind advisory: secure loose objects");return o}
+const KB=[{k:["climate change","global warming"],q:"What is climate change?",a:"Climate change is a long-term shift in average temperatures and weather patterns. Today it is driven mainly by burning fossil fuels, which raises greenhouse gases."},{k:["weather and climate","difference"],q:"Weather vs climate?",a:"Weather is what happens today or this week. Climate is the average weather of a place over about 30 years."},{k:["monsoon"],q:"What is a monsoon?",a:"A monsoon is a seasonal wind reversal. In India, moist winds from the Indian Ocean bring most annual rain between June and September."},{k:["greenhouse"],q:"What is the greenhouse effect?",a:"Gases like CO₂ and methane trap heat in the atmosphere. This keeps Earth habitable, but too much warms the planet."},{k:["el nino","el niño"],q:"What is El Niño?",a:"El Niño is a periodic warming of the Pacific Ocean surface that shifts rainfall and temperature patterns worldwide, often weakening the Indian monsoon."},{k:["humidity"],q:"What is humidity?",a:"Humidity is the amount of water vapour in the air. High humidity makes heat feel hotter because sweat evaporates slowly."}];
+
+/* ---- CONVERSATION LAYER ---- */
+let last="Bengaluru";
+function parse(q){const l=q.toLowerCase();let city=Object.keys(CITIES).find(c=>l.includes(c.toLowerCase()));const had=!!city;city=city||last;
+const kb=KB.find(e=>e.k.some(k=>l.includes(k)));
+let intent=kb?"climate":cmpN(l)>1?"compare":/\b(wear|pack|outfit|jacket)/.test(l)?"outfit":/\b(run|jog|picnic|cricket|outdoor|trek|walk|cycle)/.test(l)?"activity":/\buv|sunburn/.test(l)?"uv":/\b(aqi|air|pollut)/.test(l)?"aqi":/alert|warn|storm|safe|danger/.test(l)?"alerts":/rain|umbrella|shower|drizzle/.test(l)?"rain":/temp|hot|cold|warm|degree|heat/.test(l)?"temperature":/wind|breez/.test(l)?"wind":/humid/.test(l)?"humidity":/week|forecast|tomorrow|days|and/.test(l)?"forecast":"summary";
+const time=/tonight|evening/.test(l)?"evening":/morning/.test(l)?"morning":/afternoon/.test(l)?"afternoon":/tomorrow/.test(l)?"tomorrow":/week|days/.test(l)?"week":"now";
+return{city,had,intent,time,kb,cities:Object.keys(CITIES).filter(c=>l.includes(c.toLowerCase())),source:kb?"Climate KB":"Weather API"}}
+const slot={morning:8,afternoon:14,evening:19,now:new Date().getHours(),tomorrow:12,week:12};
+function respond(p){const c=CITIES[p.city],H=hourly(p.city),D=daily(p.city),A=alerts(p.city);let a="",safety="";
+const at=H.find(x=>x.h===slot[p.time])||H[0],dd=p.time==="tomorrow"?D[1]:D[0];
+if(p.intent==="climate")return{a:p.kb.a,s:"Source: curated climate knowledge base."};
+const rain=p.time==="tomorrow"?dd.r:at.r,temp=p.time==="tomorrow"?dd.hi:at.t,when=p.time==="now"?"right now":p.time==="tomorrow"?"tomorrow":"this "+p.time;
+switch(p.intent){
+case"rain":a=`${rain>=60?"Yes, bring an umbrella ☂️":rain>=35?"Maybe, it’s a coin flip 🌦️":"Unlikely 😎"}. The chance of rain in <b>${p.city}</b> ${when} is about <b>${rain}%</b>.`;if(rain>=60)safety="Safety note: avoid waterlogged roads and underpasses.";break;
+case"temperature":a=`It’s around <b>${cv(temp)}${us()}</b> in ${p.city} ${when}. Today ranges ${cv(D[0].lo)}–${cv(D[0].hi)}${us()}.`;if(temp>=38)safety="Safety note: stay hydrated and avoid direct midday sun.";break;
+case"wind":a=`Winds in ${p.city} are around <b>${c.w} km/h</b>${c.w>=40?", which is strong":", which is mild"}.`;break;
+case"humidity":a=`Humidity in ${p.city} is about <b>${c.h}%</b>. ${c.h>70?"Expect it to feel muggy.":"Fairly comfortable."}`;break;
+case"alerts":a=A.length?`There ${A.length>1?"are":"is"} ${A.length} active alert${A.length>1?"s":""} for ${p.city}.`:`No alerts for ${p.city}. I only show alerts when data supports them.`;break;
+case"forecast":a=`5-day outlook for <b>${p.city}</b>:<br>`+D.map(d=>`${d.e} ${d.d}: ${cv(d.lo)}–${cv(d.hi)}${us()}, ${d.r}% rain`).join("<br>");break;
+case"compare":a="⚖️ "+p.cities.slice(0,2).map(n=>`<b>${n}</b>: ${cv(CITIES[n].t)}${us()}, ${CITIES[n].r}% rain, ${CITIES[n].h}% humidity`).join("<br>vs<br>")+"<br>🏆 Cooler: <b>"+p.cities.slice(0,2).sort((m,k)=>CITIES[m].t-CITIES[k].t)[0]+"</b>";break;
+case"outfit":a=`🎒 For <b>${p.city}</b> ${when}:<br>`+outfit(p.city).join("<br>");break;
+case"activity":{const b=best(p.city);a=`🏃 Best window in ${p.city}: <b>${hl(b.h)}</b> (${cv(b.t)}${us()}, ${b.r}% rain).`}break;
+case"uv":a=`🕶️ UV index in ${p.city} is about <b>${uv(c)}</b> (${uv(c)>=8?"very high":uv(c)>=6?"high":uv(c)>=3?"moderate":"low"}).`;if(uv(c)>=6)safety="Safety note: use SPF 30+ and limit midday sun.";break;
+case"aqi":a=`🌫️ Air quality in ${p.city}: AQI <b>${aqi(p.city)}</b> (${aqi(p.city)>100?"unhealthy for sensitive groups":"acceptable"}).`;if(aqi(p.city)>100)safety="Safety note: limit outdoor exertion.";break;
+default:a=`<b>${p.city}</b>: ${c.c}. ${cv(c.t)}${us()}, humidity ${c.h}%, wind ${c.w} km/h, ${c.r}% rain chance.`}
+const al=A.length&&["alerts","summary","rain"].includes(p.intent)?A.map(x=>`<div class="al">⚠️ ${x}</div>`).join(""):"";
+return{a:a+al,s:safety||"Prototype data. For emergencies, follow official services."}}
+
+/* ---- UI: chat ---- */
+const chat=$("#chat");
+const stamp=()=>`<span class="ts">${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span>`;
+function add(h,u){const d=document.createElement("div");d.className="b"+(u?" u":"");d.innerHTML=h+stamp();chat.appendChild(d);chat.scrollTop=1e9;return d}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function ask(text){text=text.trim();if(!text)return;add(text.replace(/</g,"&lt;"),1);$("#q").value="";
+const st=[...$("#steps").children];st.forEach(x=>x.classList.remove("hot"));
+st[0].classList.add("hot");await sleep(250);const p=parse(text);st[0].classList.remove("hot");st[1].classList.add("hot");
+$("#insp").innerHTML=`<b>city</b><span>${p.city}${p.had?"":" (remembered)"}</span><b>intent</b><span>${p.intent}</span><b>time</b><span>${p.time}</span><b>source</b><span>${p.source}</span>`;
+await sleep(350);st[1].classList.remove("hot");st[2].classList.add("hot");const t=add('<span class="dots"><i></i><i></i><i></i></span>');await sleep(450);
+const r=special(text,p)||respond(p);last=p.city;sky(p.city);st[2].classList.remove("hot");st[3].classList.add("hot");
+t.innerHTML=r.a+(r.s?`<div class="sf">${r.s}</div>`:"")+(p.intent==="climate"?"":follow(p))+stamp();chat.scrollTop=1e9;setTimeout(()=>st[3].classList.remove("hot"),900)}
+$("#send").onclick=()=>ask($("#q").value);$("#q").onkeydown=e=>{if(e.key==="Enter")ask($("#q").value)};
+["Will it rain today?","What should I expect this evening in Mumbai?","Any alerts for Delhi?","5-day forecast for London","Is it windy in Tokyo?","What is a monsoon?","What is climate change?","Compare Mumbai and London","What to wear in Delhi?","Best time for a run in Chennai","Air quality in Delhi","Save Mumbai"].forEach(s=>{const b=document.createElement("button");b.textContent=s;b.onclick=()=>ask(s);$("#chips").appendChild(b)});
+add("Hi! I’m WeatherGPT 👋 Ask me about forecasts, alerts or basic climate. Try a chip below. I know: "+Object.keys(CITIES).join(", ")+".");
+
+/* ---- Dashboard visuals ---- */
+Object.keys(CITIES).forEach(c=>$("#city").add(new Option(c,c)));$("#city").onchange=drawDash;
+const hl=h=>(h%12||12)+(h<12?"a":"p");
+function drawDash(){const n=$("#city").value,c=CITIES[n],H=hourly(n),D=daily(n);
+$("#hero").innerHTML=`<h2 style="margin:12px 0 0">${n}: ${c.c}</h2>`+alerts(n).map(x=>`<div class="b" style="max-width:100%;margin-top:6px"><div class="al" style="margin:0">⚠️ ${x}</div></div>`).join("");
+$("#stats").innerHTML=[["🌡️",cv(c.t)+us(),"Temp"],["💧",c.h+"%","Humidity"],["💨",c.w+" km/h","Wind"],["☔",c.r+"%","Rain chance"],["🕶️","UV "+uv(c),"UV index"],["🌫️","AQI "+aqi(n),"Air quality"]].map(s=>`<div class="stat"><big>${s[0]} ${s[1]}</big><small>${s[2]}</small></div>`).join("");
+const W=640,Ht=170,mn=Math.min(...H.map(x=>x.t))-1,mx=Math.max(...H.map(x=>x.t))+1,X=i=>30+i*(W-45)/23,Y=v=>Ht-25-(v-mn)/(mx-mn)*(Ht-45);
+const pts=H.map((x,i)=>X(i)+","+Y(x.t)).join(" ");
+$("#tchart").innerHTML=`<svg viewBox="0 0 ${W} ${Ht}" width="100%"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a8f84" stop-opacity=".5"/><stop offset="1" stop-color="#1a8f84" stop-opacity="0"/></linearGradient></defs><polygon points="${X(0)},${Ht-25} ${pts} ${X(23)},${Ht-25}" fill="url(#g)"/><polyline points="${pts}" fill="none" stroke="#1a8f84" stroke-width="3" stroke-linejoin="round"/>${H.map((x,i)=>i%3==0?`<circle cx="${X(i)}" cy="${Y(x.t)}" r="4" fill="#1a8f84"/><text x="${X(i)}" y="${Y(x.t)-9}" text-anchor="middle">${cv(x.t)}°</text><text x="${X(i)}" y="${Ht-8}" text-anchor="middle">${hl(x.h)}</text>`:"").join("")}</svg>`;
+$("#rchart").innerHTML=`<svg viewBox="0 0 ${W} 150" width="100%">${H.map((x,i)=>{const bh=x.r*1.0;return`<rect x="${X(i)-8}" y="${120-bh}" width="16" height="${bh}" rx="3" fill="${x.r>=60?"#c0392b":"#3d8bd9"}" opacity=".85"><title>${hl(x.h)}: ${x.r}%</title></rect>${i%3==0?`<text x="${X(i)}" y="140" text-anchor="middle">${hl(x.h)}</text>`:""}`}).join("")}</svg>`;
+$("#days").innerHTML=D.map(d=>`<div class="day"><div>${d.d}</div><div class="e">${d.e}</div><b>${cv(d.hi)}°</b> <small>${cv(d.lo)}°</small><br><small>${d.r}% rain</small></div>`).join("")}
+$("#city").value="Bengaluru";drawDash();
+
+/* ---- Climate KB ---- */
+$("#kb").innerHTML=KB.map(e=>`<div class="card"><b>${e.q}</b><p>${e.a}</p></div>`).join("");
+$("#kb").onclick=e=>{const c=e.target.closest(".card");if(c)c.classList.toggle("open")};
+
+/* ---- Extra features ---- */
+const W_=[],names=Object.keys(CITIES);
+["#c1","#c2","#pc"].forEach(s=>names.forEach(n=>$(s).add(new Option(n,n))));$("#c2").value="Delhi";
+$("#c1").onchange=$("#c2").onchange=drawCmp;$("#pc").onchange=$("#pa").onchange=drawPlan;
+function drawCmp(){const m=[["🌡️ Temp",n=>CITIES[n].t,50],["💧 Humidity %",n=>CITIES[n].h,100],["💨 Wind km/h",n=>CITIES[n].w,60],["☔ Rain %",n=>CITIES[n].r,100]];
+$("#cmpo").innerHTML=[$("#c1").value,$("#c2").value].map(n=>`<div class="card"><h3 style="margin:0 0 8px">${n}</h3><small>${CITIES[n].c}</small>`+m.map(x=>`<div style="margin-top:8px">${x[0]}: <b>${x[0].includes("Temp")?cv(x[1](n))+us():x[1](n)}</b><div class="bar"><i style="width:${x[1](n)/x[2]*100}%"></i></div></div>`).join("")+`<div>🕶️ UV ${uv(CITIES[n])} · 🌫️ AQI ${aqi(n)}</div></div>`).join("")}
+function outfit(n){const c=CITIES[n],t=c.t,o=[t>=35?"👕 Light cotton clothes and a cap":t>=24?"👕 T-shirt and breathable layers":t>=15?"🧥 Light jacket":"🧥 Warm coat and scarf"];if(c.r>=50)o.push("☂️ Umbrella or raincoat");if(uv(c)>=7)o.push("🧴 Sunscreen and sunglasses");if(c.w>=35)o.push("🧣 Windproof layer");if(aqi(n)>100)o.push("😷 Mask for poor air quality");if(c.h>75)o.push("💧 Water bottle, quick-dry fabrics");return o}
+const score=x=>x.r+Math.abs(x.t-23)*3,best=n=>hourly(n).sort((a,b)=>score(a)-score(b))[0];
+function drawPlan(){const n=$("#pc").value,H=hourly(n),b=best(n);
+$("#plan").innerHTML=`<h3>Best time for “${$("#pa").value}”: <span style="color:var(--acc2)">${hl(b.h)}</span> (${cv(b.t)}${us()}, ${b.r}% rain)</h3><small>Comfort strip, next 24 h (green = great, red = avoid)</small><div class="cs">${H.map(x=>{const s=score(x);return`<div title="${hl(x.h)}" style="background:${s<25?"#2fb56a":s<55?"#f0b43c":"#d9534f"}"></div>`}).join("")}</div><b>Pack list</b><div class="ck">${outfit(n).map(o=>`<label><input type="checkbox"> ${o}</label>`).join("")}</div>`}
+function sky(n){const c=CITIES[n],k=c.r>=60?"rain":c.t>=36?"hot":c.r>=35?"cloud":"";$("#sky").className="sky "+k;
+$("#fx").innerHTML=k==="rain"?Array.from({length:40},(_,i)=>`<i style="left:${i*2.6}%;animation-delay:${(i*37%100)/100}s"></i>`).join(""):k==="cloud"?'<span class="cl" style="top:10px">☁️</span><span class="cl" style="top:46px;animation-delay:-9s">☁️</span>':'<div class="sun"></div>';
+$("#skyt").textContent=`📍 ${n} · ${cv(c.t)}${us()} · ${c.c}`}
+function follow(p){const o=["What to wear in "+p.city+"?","Any alerts for "+p.city+"?","Best time for a run in "+p.city,"UV index in "+p.city,"Air quality in "+p.city,"5-day forecast for "+p.city];return`<div class="fu">`+o.sort(()=>Math.random()-.5).slice(0,3).map(s=>`<button onclick="ask('${s}')">${s}</button>`).join("")+"</div>"}
+let favs=[];try{favs=JSON.parse(localStorage.getItem("wgfav")||"[]")}catch(e){}
+function saveFav(n){if(!favs.includes(n))favs.push(n);try{localStorage.setItem("wgfav",JSON.stringify(favs))}catch(e){}drawFavs()}
+function drawFavs(){$("#favs").innerHTML=favs.length?"":"<small>None yet</small>";favs.forEach(n=>{const b=document.createElement("button");b.textContent="⭐ "+n;b.onclick=()=>ask("Weather in "+n);$("#favs").appendChild(b)})}
+function special(t,p){if(/^\s*(save|favou?rite)/i.test(t)){saveFav(p.city);return{a:`⭐ Saved <b>${p.city}</b>. Tap it under Saved cities.`,s:""}}return null}
+$("#unit").onclick=()=>{U=U==="C"?"F":"C";$("#unit").textContent="°"+U;drawDash();drawCmp();drawPlan();sky(last)};
+$("#clr").onclick=()=>{chat.innerHTML="";add("Chat cleared ✨ Ask me anything about the weather.")};
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR)$("#mic").style.display="none";else $("#mic").onclick=()=>{const r=new SR();r.lang="en-IN";$("#mic").classList.add("on");r.onresult=e=>ask(e.results[0][0].transcript);r.onend=()=>$("#mic").classList.remove("on");try{r.start()}catch(e){$("#mic").classList.remove("on")}};
+sky("Bengaluru");drawFavs();drawCmp();drawPlan();
+const X_=[
+["1. Data layer (stands in for the Open-Meteo API)","The CITIES object holds base temperature (t), daily swing (a), humidity, wind and rain chance per city. hourly() uses a sine wave (warmest mid-afternoon, coolest near dawn) plus a small seeded variation so each city looks different but stays stable between reloads. daily() builds the 5-day outlook the same way. Published pages cannot call outside websites, so this simulated data replaces the live call.","const t = c.t + c.a * Math.sin((h - 9) / 24 * 2 * Math.PI);\n\n# Python/Streamlit equivalent (live data)\nimport requests\nurl = 'https://api.open-meteo.com/v1/forecast'\np = {'latitude': 12.97, 'longitude': 77.59,\n     'hourly': 'temperature_2m,precipitation_probability'}\ndata = requests.get(url, params=p).json()"],
+["2. Query processing: parse()","This is the NLP step. It lowercases the question, looks for a known city (and falls back to the last city, which is how follow-ups work), checks the climate knowledge base, then uses regular expressions to pick an intent (rain, temperature, wind, alerts, forecast) and a time word (evening, tomorrow…). Order matters: climate and alerts are tested before the generic rain/temp checks.","intent = /rain|umbrella/.test(l) ? 'rain'\n       : /temp|hot|cold/.test(l) ? 'temperature'\n       : 'summary';\n\n# Python\nimport re\nintent = 'rain' if re.search(r'rain|umbrella', q.lower()) else 'summary'"],
+["3. Data retrieval and response: respond()","A switch statement turns the intent into a plain-language answer. Numbers come from the data layer, thresholds decide wording (rain ≥ 60% gives “bring an umbrella”). A safety note is attached only when the situation calls for it, matching the slide on “understand the result”.","case 'rain':\n  a = rain >= 60 ? 'Yes, bring an umbrella' : 'Unlikely';\n  if (rain >= 60) safety = 'Avoid waterlogged roads.';"],
+["4. Alerts: only when data supports them","alerts() compares readings with thresholds (rain ≥ 70%, high ≥ 38°C, wind ≥ 40 km/h). If none are crossed, nothing is shown, which implements “show alerts only when reliable data supports them”.","if (c.r >= 70) out.push('Heavy rain advisory');\nif (c.t + c.a >= 38) out.push('Heat advisory');"],
+["5. Chat interface and inspector","ask() runs the four stages with small delays so you can watch each step light up in the inspector. add() appends bubbles to the chat div. Chips call ask() directly. In Streamlit this is done with st.chat_input and st.chat_message.","await sleep(250); const p = parse(text);\n\n# Streamlit\nimport streamlit as st\nq = st.chat_input('Ask about the weather')\nif q:\n    with st.chat_message('user'): st.write(q)\n    with st.chat_message('assistant'): st.write(answer(q))"],
+["6. Visuals: SVG charts built in code","drawDash() turns the 24 hourly values into SVG. X() and Y() are scale functions that map hour and temperature to pixel positions. The line is a polyline, the fill is a gradient polygon, and rain is a set of rects (red above 60%). No chart library is needed.","const X = i => 30 + i * (W - 45) / 23;\nconst Y = v => H - 25 - (v - mn) / (mx - mn) * (H - 45);\n\n# Streamlit\nst.line_chart(df, x='time', y='temperature_2m')"],
+["7. Theming, tabs and the knowledge base","CSS variables on :root hold colours, and a dark-mode media query swaps them. Tabs toggle an “on” class. The Climate KB is an array of {keywords, question, answer} used by both the Climate tab and the chat, so answers stay consistent.","@media (prefers-color-scheme: dark){ :root{ --bg:#0e1714; } }"]];
+
+</script></body></html>
